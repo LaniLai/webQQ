@@ -1,0 +1,35 @@
+本程序运行在python3.X上
+
+本程序依赖pillow, django1.9.x
+
+本程序默认管理账号
+    laiying  密码：123456lai
+测试账号
+    xiaoyun  jack    laiying 密码：P@ssw0rd
+    默认密码与管理员相同
+
+本程序结构目录
+   webchat
+    |_bbs|_论坛目录
+    |    |_
+    |    |_
+    |_chat  聊天室目录
+    |    |_
+    |    |_
+    |_static 存放静态文件目录
+    |    |_
+    |    |_
+    |_templates  存放模版文件目录|
+    |    |_
+    |    |
+    |_uploads 存放上传文件目录
+    |    |_
+    |    |_
+    |_webchat  项目核心配置目录
+    |    |
+    |requirements 项目请求安装依赖包列表
+    |    |_
+    |    |_
+
+
+

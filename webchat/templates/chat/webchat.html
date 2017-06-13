@@ -1,0 +1,368 @@
+{% extends 'base.html' %}
+{% load urlextend %}
+{% block container %}
+    <div class="container chat-container" style="background: url('/static/img/19.jpg') no-repeat fixed;background-size:100% 100%;">
+    <div class="row">
+        <div class="col-md-1 col-xs-1 left-function">
+            <div style="margin-left: -3px;margin-top: 10px"><img src="/static/{{ request.user.userprofile.head_img|show_img }}" style="border-radius: 25px"></div>
+        </div>
+        <div class="col-md-3 col-xs-3 left-contact-panel">
+            <div style="margin: 0 -15px;">
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active"><a href="#myfriend" aria-controls="myfriend" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-user"></span> 好友</a></li>
+                    <li role="presentation"><a href="#mygroup" aria-controls="mygroup" role="tab" data-toggle="tab"><span class="fa icon-group"></span> 群组</a></li>
+                </ul>
+                <!-- Tab panes -->
+                <div class="tab-content" style="overflow-y: auto;height: 658px">
+                    <div role="tabpanel" class="tab-pane active" id="myfriend">
+                        <ul class="list-group" role="tablist">
+                            {% for friend in request.user.userprofile.friends.select_related %}
+                                <li class="list-group-item" action="chat" role="presentation" friendname="{{ friend.name }}" friendid="{{ friend.id }}" friendtype="friend">
+                                    <span class="badge"></span>
+                                    <a href="#myfriend{{ friend.id }}" aria-controls="friend{{ friend.id }}" role="tab" data-toggle="tab" style="text-decoration: none;" >
+                                        <img src="/static/{{ friend.head_img|show_img }}" width="19" height="19" style="border-radius: 25px"> {{ friend.name|truncatechars:15 }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="mygroup">
+                        <ul class="list-group">
+                            {% for friend in request.user.userprofile.group_members.select_related %}
+                                <li class="list-group-item" action="chat" role="presentation" friendname="{{ friend.name }}" friendid="{{ friend.id }}" friendtype="group">
+                                    <span class="badge"></span>
+                                    <a href="#mygroup{{ friend.id }}" aria-controls="group{{ friend.id }}" role="tab" data-toggle="tab" style="text-decoration: none;">
+                                        <img src="/static/{{ friend.head_img|show_img }}" width="19" height="19"> {{ friend.name|truncatechars:15 }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-md-8 col-xs-8 right-chat-panel tab-content">
+            <div role="tabpanel" class="tab-pane" id="" >
+                <div class="row chat-box-title">
+                    <span role="tabpanel">正在聊天</span>
+                    <span class="fa icon-folder-open-alt icon-2x pull-right" style="line-height: 65px;padding-right: 25px;color: #83c6e0"></span>
+
+                </div>
+                <div class="row chat-box-window">
+                </div>
+                <div class="row chat-box-emoj">
+                    <span class="glyphicon glyphicon-picture col-xs-1" style="margin: 5px"></span>
+                    <span class="glyphicon glyphicon-cloud-upload" data-toggle="modal" data-target=".modal" onclick="resizeModal()"></span>
+
+                </div>
+                <div class="row chat-box-msg-box">
+                    <textarea style="resize: none;height: 100%;width: 100%;border: none;outline: none;" spellcheck="false"></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 col-xs-4" style="line-height: 35px"><a href="">广告滚动的位置</a></div>
+                    <div class="btn-group pull-right">
+                        <button type="button" class="btn btn-success" onclick="GetTextArea($(this).parents('.row').siblings().find('textarea'))">发送</button>
+                        <button type="button" class="btn btn-success dropdown-toggle" style="border-radius:0;border-bottom-right-radius: 10px" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span class="caret"></span>
+                            <span class="sr-only">Toggle Dropdown</span>
+                        </button>
+                        <select class="dropdown-menu" multiple="multiple" size="2" name="sendkey">
+                            <option value="1">按Enter键发送消息</option>
+                            <option value="2">按Ctrl+Enter键发送消息</option>
+                        </select>
+                    </div>
+                </div>
+
+                          {#    模态框#}
+                <div class="modal fade">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title">上传文件</h4>
+                            </div>
+                            <div class="modal-body">
+                                <form class="form-horizontal" name="upload-file" method="post" enctype="multipart/form-data" action="{% url 'send_msg' %}">{% csrf_token %}
+                                    <div>
+                                        <input type="file" name="uploadfile" multiple="multiple">
+                                    </div>
+                                    <div class="hide">
+                                        <input type="hidden" name="friendid">
+                                        <input type="hidden" name="friendtype">
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">上传</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+
+
+        </div>
+    </div>
+
+
+    </div>
+{% endblock %}
+
+
+{% block js %}
+<script>
+
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+
+
+    //克隆对话框 chatid 聊天窗口ID
+        function CloneChatWindow(chatid) {
+            var get_id = $("[id="+chatid+"]");
+            if(!get_id.length){//如果之前没有克隆,则克隆,也就是长度是0,才克隆
+                var chatwindow = $(".right-chat-panel").children(":first").clone(true);
+                $(".right-chat-panel").append(chatwindow).children(":last").attr('id', chatid);
+            }
+
+        }
+    //获取用户信息,并设置对话窗口属性
+    //current_click  当前在好友列表里点击的好友是谁,
+    //destination——chat_window_id 目标聊天窗口ID
+    function ReplaceInfo(current_click, destination_chat_window_id) {
+        var friendid = $(current_click).attr('friendid');
+        var friendname = $(current_click).attr('friendname');
+        var friendtype = $(current_click).attr('friendtype');
+        var friendlabel = $("[id="+ destination_chat_window_id +"]").find('.chat-box-title').children('[role="tabpanel"]');
+        friendlabel.html('正在与' + friendname + '对话');
+        friendlabel.attr({'friendid':friendid,'friendtype': friendtype});
+        var get_modal = $("[id="+ destination_chat_window_id +"]").find('.modal');
+        get_modal.attr('id',friendid+'modal').insertAfter($('.right-chat-panel'));
+        get_modal.find('form[name="upload-file"]').find('[name="friendid"]').val(friendid);
+        get_modal.find('form[name="upload-file"]').find('[name="friendtype"]').val(friendtype);
+        $("[id="+ destination_chat_window_id +"]").find('.chat-box-emoj').find('[data-toggle="modal"]').attr('data-target','#'+friendid+'modal');
+    }
+
+    //send message  消息, friendid 好友ID,  friendtype 好友类型,  panelid 聊天窗口ID
+    function SentMsg(message,friendid, friendtype,panelid) {
+        var data = {'message': message, 'friendid': friendid, 'friendtype':friendtype};
+        $.post("{% url 'send_msg' %}",{data:JSON.stringify(data)},function (callback) {
+            console.log(callback);
+            ShowChatMsg(message, friendtype, friendid, panelid, 'sent', null);
+        })
+    }
+
+
+    //receive message
+    function GetMsg() {
+        $.getJSON("{% url 'get_msg' %}", function(callback){
+            var retcode = callback.retcode;
+            if(retcode == 0){
+                var msg_list = callback.result;
+                var contentType = ['jpg','png'];
+                for(var i=0; i<msg_list.length;i++){
+                    var friendid = msg_list[i]['friendid'];
+                    var friendtype = msg_list[i]['friendtype'];
+                    var message = msg_list[i]['message'];
+                    if(typeof message == "object"){
+                        var file = msg_list[i]['file'];
+                        if(file){
+                            var newmessage = ""; //存储下载连接元素
+
+                            var newelem = ""; //存储展示元素消息
+                            for(var f=0;f<message.length;f++){
+                                newmessage += "<div><span class='glyphicon glyphicon-download-alt'> <a target='_blank' href='/static/" + message[f] + "'>"+message[f]+"</a><span></div>";
+                                if(contentType.indexOf(String(message[f]).split('.')[1])!=-1){
+                                    newelem += "<div><span> <img height=240 width=240 src='/static/" + message[f] + "'>"+ "<span></div>";
+                                }
+                            }
+                            message = newmessage + newelem;
+                        }
+                    }
+
+
+
+                    if(friendtype == 'group'){
+                        var groupid = msg_list[i]['groupid'];
+                        CloneChatWindow(friendtype+groupid);
+                        var getFriendPanel = $('[friendid='+groupid+'][friendtype='+friendtype+']');
+                        ReplaceInfo(getFriendPanel, friendtype+groupid);
+                        ShowChatMsg(message, friendtype, friendid, friendtype+groupid, 'get', groupid)
+                    }else {
+                        CloneChatWindow(friendtype+friendid);
+                        getFriendPanel = $('[friendid='+friendid+'][friendtype='+friendtype+']');
+                        ReplaceInfo(getFriendPanel, friendtype+friendid);
+                        ShowChatMsg(message, friendtype, friendid, friendtype+friendid, 'get', null)
+                    }
+
+                }
+                $('#chatAudio')[0].play(); //播放声音
+                var scroll_obj = $('.active .chat-box-window');
+                if(scroll_obj.length){
+                    scroll_obj.animate({scrollTop: scroll_obj[0].scrollHeight},500);
+                }
+
+            }
+            GetMsg(); //回调获取消息方法
+        })
+    }
+
+    //面板显示发送的消息
+    //message 消息   friendtype好友类型,组或好友  friendid  好友或组ID,panelid 聊天窗口ID,  status 是发送还是接收消息
+    function ShowChatMsg(message, friendtype, friendid, panelid, status, groupid) {
+        var get_friend_in_list = $('.left-contact-panel .tab-content').find('[friendid='+friendid+']');  //从好友列表里获取好友ID
+
+
+
+        var friend_head_img = get_friend_in_list.find('img').attr('src');
+        if(friendtype=='group'){
+            get_friend_in_list = $('#mygroup').find('[friendid='+groupid+']');
+            friend_head_img = $("#myfriend").find('[friendid='+friendid+']').find('img').attr('src');
+        }
+
+        var msg_count = get_friend_in_list.find('span.badge').html();  //获取未读消息数量
+        if(!String(msg_count).trim()){
+            msg_count = 0
+        }
+        var get_chat_window_status = $("[id="+panelid+"]").hasClass('active');
+        if(!get_chat_window_status){
+            msg_count = parseInt(msg_count) + 1;
+            get_friend_in_list.find('span.badge').html(msg_count);
+        }
+
+
+
+        if(status == 'sent'){
+            var user = ' {{ request.user.userprofile.name }}';
+            friend_head_img = "/static/{{ request.user.userprofile.head_img|show_img }}"
+        }
+        if(status == 'get'){
+            user = $('#myfriend').find("[friendid="+friendid+"]").attr('friendname');
+            console.log(user,'here')
+        }
+        var get_friend_in_chat_window = $("#"+ panelid).find('.chat-box-window');
+        var date = new Date(); //日期对象
+        var now = date.getFullYear()+"-"+ (date.getMonth()+1)+"-"+ date.getDate()+" "+ date.getHours()+":"+ date.getMinutes()+":"+ date.getSeconds()+" ";
+        var new_message = "<div class="+status+">" +
+                        '<img width="21" height="21" style="border-radius:25px" src=' + friend_head_img + '>' +
+                        ' <span>' + user +" " +now + '</span> ' +
+                        '<p class="left-message">' + message + '</p>' +
+                        '</div>';
+        get_friend_in_chat_window.append(new_message);
+        $("#"+panelid).find(".chat-box-msg-box textarea").val(''); //初始化输入框
+
+
+        var scroll_obj = $('.active .chat-box-window');
+        if(scroll_obj.length){
+            scroll_obj.animate({scrollTop: scroll_obj[0].scrollHeight},500);
+        }
+
+    }
+
+    function GetTextArea(textarea) {
+        var chat_msg = $(textarea).val();
+        var get_panel = $('.right-chat-panel').find(".tab-pane.active");
+        var get_chat_window = get_panel.find('.chat-box-title [role="tabpanel"]');
+        var friendid = get_chat_window.attr('friendid');
+        var friendtype = get_chat_window.attr('friendtype');
+        var panelid = get_panel.attr('id');//获取聊天窗口ID
+        if(chat_msg.trim()){//如果消息不为空,则发送
+            SentMsg(chat_msg, friendid, friendtype, panelid);
+        }
+    }
+
+
+    function resizeModal() {
+        //设置模态框的样式
+        $(".modal").css('top',function () {
+           var newheight =  ($(window).height() -188+30)/2;
+            return newheight
+        })
+    }
+
+    $(document).ready(function(){
+        //设置CSRF头部信息
+        var csrftoken = getCookie('csrftoken');
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                } }
+        });
+        //设置导航栏标签 聊天室为active状态
+        $(".nav a[href='{{ request.path }}']").parent().addClass("active");
+
+        //设置好友与群组的手势图标及active,和文字状态
+        $('[action="chat"]').click(function () {
+            $("[action='chat']").removeClass('active').find('a').css({'color':'#337ab7'});//移除所有active样式
+            $(this).addClass('active').find('a').css('color','#fff');//给当前点击的元素添加active样式
+            var chatid = $(this).find('a').attr('aria-controls');
+            $(this).find('span.badge').html('');//重置消息次数
+            CloneChatWindow(chatid);
+            $("[id="+chatid+"]").addClass('active').siblings().removeClass('active');
+            ReplaceInfo(this, chatid)
+        });
+        $("[action='chat']").css('cursor', 'pointer');//将所有匹配的元素鼠标放上去后换成手势样式
+
+
+        //准备发送消息
+        $("body").delegate(".chat-box-msg-box textarea", 'keydown', function (event) {
+            if(event.which == 13){
+                GetTextArea(this);
+            }
+        });
+
+        //接收消息
+        GetMsg();
+
+        $('<audio id="chatAudio"><source src="/static/mp3/classic.mp3" type="audio/mpeg"> </audio>').appendTo('body');//载入声音文件
+
+
+        //委托事件,给模态框绑定click事件,触发上传文件操作
+        $("body").delegate('.modal button', 'click', function () {
+            var get_form = $(this).parents('.modal').find('.modal-body').children('[name="upload-file"]:first');
+            $.ajax({
+                url:"{% url 'send_msg' %}",
+                type: 'POST',
+                enctype:'multipart/form-data',
+                processData:false,
+                contentType:false,
+                data:new FormData(get_form[0]),
+                success:function (callback) {
+                    console.log(callback)
+                }
+            })
+        })
+
+
+
+
+
+    });//end doc ready
+
+</script>
+{% endblock %}

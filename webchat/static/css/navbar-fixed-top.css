@@ -1,0 +1,16 @@
+body {
+  /*min-height: 2000px;*/
+  padding-top: 70px;
+  background-color: #ececec;
+}
+
+
+/*评论样式*/
+.root-commnet{
+    border-bottom: 1px dashed #d4d4d4;
+
+}
+
+.comment-node{
+    /*border-bottom: 1px dashed #d4d4d4;*/
+}
